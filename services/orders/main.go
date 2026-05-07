@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 )
@@ -13,13 +13,12 @@ func main() {
 	if rabbitURL != "" {
 		p, err := newAMQPPublisher(rabbitURL)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "orders: failed to connect to RabbitMQ: %v\n", err)
-			os.Exit(1)
+			log.Fatalf("orders: failed to connect to RabbitMQ: %v", err)
 		}
 		pub = p
-		fmt.Println("orders: connected to RabbitMQ")
+		log.Println("orders: connected to RabbitMQ")
 	} else {
-		fmt.Fprintln(os.Stderr, "orders: RABBITMQ_URL not set, publishing disabled")
+		log.Println("orders: RABBITMQ_URL not set, publishing disabled")
 	}
 
 	mux := http.NewServeMux()
@@ -33,9 +32,8 @@ func main() {
 	mux.HandleFunc("/orders/", handleGetOrder)
 
 	addr := ":8080"
-	fmt.Printf("orders: listening on %s\n", addr)
+	log.Printf("orders: listening on %s", addr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
-		fmt.Fprintf(os.Stderr, "orders: server error: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("orders: server error: %v", err)
 	}
 }

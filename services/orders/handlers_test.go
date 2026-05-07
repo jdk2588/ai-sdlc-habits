@@ -18,7 +18,7 @@ func resetStore() {
 
 func TestCreateOrder_ValidInput_Returns201(t *testing.T) {
 	resetStore()
-	body := bytes.NewBufferString(`{"item":"widget","qty":2,"Price":9.99}`)
+	body := bytes.NewBufferString(`{"item":"widget","quantity":2,"price":9.99}`)
 	req := httptest.NewRequest(http.MethodPost, "/orders", body)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -46,9 +46,9 @@ func TestCreateOrder_InvalidInput_Returns400(t *testing.T) {
 		name string
 		body string
 	}{
-		{"empty item", `{"item":"","qty":2,"Price":9.99}`},
-		{"zero quantity", `{"item":"widget","qty":0,"Price":9.99}`},
-		{"negative price", `{"item":"widget","qty":1,"Price":-1}`},
+		{"empty item", `{"item":"","quantity":2,"price":9.99}`},
+		{"zero quantity", `{"item":"widget","quantity":0,"price":9.99}`},
+		{"negative price", `{"item":"widget","quantity":1,"price":-1}`},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -65,7 +65,7 @@ func TestCreateOrder_InvalidInput_Returns400(t *testing.T) {
 
 func TestGetOrder_KnownID_Returns200(t *testing.T) {
 	resetStore()
-	order := &Order{Item: "widget", Qty: 1, Price: 5.0, OrderStatus: "placed"}
+	order := &Order{Item: "widget", Quantity: 1, Price: 5.0, OrderStatus: "placed"}
 	saveOrder(order)
 
 	req := httptest.NewRequest(http.MethodGet, "/orders/"+order.ID, nil)
