@@ -1,0 +1,1 @@
+I want to create a tutorial based on the @One2N-AI-SDLC.pdf document. The tutorial will include steps to create a sample repository with source code and steps to collaborate. The purpose and the aim is to showcase harness engineering.
