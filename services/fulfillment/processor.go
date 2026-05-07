@@ -55,7 +55,9 @@ func fulfill(r *FulfillmentRecord) error {
 	}
 	upsert(r)
 	if err := transitionTo(r, StatusFulfilled); err != nil {
-		transitionTo(r, StatusFailed)
+		if ferr := transitionTo(r, StatusFailed); ferr != nil {
+			return fmt.Errorf("set failed status: %w", ferr)
+		}
 		upsert(r)
 		return err
 	}
