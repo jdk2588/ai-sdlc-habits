@@ -1,3 +1,37 @@
-# sdlc-collaboration
+# AI-Enabled SDLC
 
-*Coming soon. See TUTORIAL.md for the full narrative.*
+A reference implementation of the five AI-enabled SDLC habits from the One2N talk by Jaideep Khandelwal.
+
+## Who this is for
+
+Experienced engineers who already use AI assistants and want to move from ad-hoc prompting to a disciplined, team-consistent approach.
+
+## Quick start
+
+Start RabbitMQ:
+
+```
+docker compose up
+```
+
+In a second terminal, start the orders service:
+
+```
+make orders
+```
+
+In a third terminal, start the fulfillment service:
+
+```
+make fulfillment
+```
+
+The orders service listens on `http://localhost:8080`. The fulfillment service connects to RabbitMQ and processes orders as they are placed.
+
+## The full story
+
+Read `TUTORIAL.md` for the narrative — how two developers built this system independently, where they diverged, and how the five habits brought them back into alignment.
+
+## The talk
+
+One2N — AI-Enabled SDLC by Jaideep Khandelwal
