@@ -1,0 +1,11 @@
+# Go binaries
+services/orders/orders
+services/fulfillment/fulfillment
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Harness internal state (all .claude/ dirs)
+**/.claude/
