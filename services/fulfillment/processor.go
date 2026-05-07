@@ -47,18 +47,21 @@ func transitionTo(r *FulfillmentRecord, next string) error {
 	}
 }
 
-// fulfill runs the state machine: placed -> processing -> fulfilled.
-// On transition failure after reaching processing, status is set to failed.
-func fulfill(r *FulfillmentRecord) error {
+// fulfill runs the state machine: placed -> processing -> proc(r) -> fulfilled.
+// If proc returns an error, status transitions to failed instead of fulfilled.
+func fulfill(r *FulfillmentRecord, proc func(*FulfillmentRecord) error) error {
 	if err := transitionTo(r, StatusProcessing); err != nil {
 		return err
 	}
 	upsert(r)
-	if err := transitionTo(r, StatusFulfilled); err != nil {
+	if err := proc(r); err != nil {
 		if ferr := transitionTo(r, StatusFailed); ferr != nil {
 			return fmt.Errorf("set failed status: %w", ferr)
 		}
 		upsert(r)
+		return err
+	}
+	if err := transitionTo(r, StatusFulfilled); err != nil {
 		return err
 	}
 	upsert(r)

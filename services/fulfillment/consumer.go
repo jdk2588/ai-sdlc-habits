@@ -68,7 +68,7 @@ func handleDelivery(d amqp.Delivery, pub publisher) {
 		Status:   StatusPlaced,
 	}
 
-	if err := fulfill(r); err != nil {
+	if err := fulfill(r, func(_ *FulfillmentRecord) error { return nil }); err != nil {
 		log.Printf("fulfillment: processing failed for order %s: %v", msg.OrderID, err)
 		d.Nack(false, false)
 		return
