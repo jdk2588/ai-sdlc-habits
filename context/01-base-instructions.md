@@ -174,6 +174,39 @@ log.Fatalf("orders: server error: %v", err)
 - Do not use a JSON key other than `"error"` in error responses.
 - Do not import packages not already in `go.mod` without asking first.
 
+## Dependency injection via function parameters
+
+Some functions accept their dependencies as typed function parameters rather
+than via closure. Use this pattern when the dependency varies per call site
+rather than per handler registration:
+
+```go
+func fulfill(r *FulfillmentRecord, proc func(*FulfillmentRecord) error) error
+```
+
+The caller provides the concrete function at the call site:
+
+```go
+// production: no-op processor
+fulfill(r, func(_ *FulfillmentRecord) error { return nil })
+
+// test: failing processor
+fulfill(r, func(_ *FulfillmentRecord) error {
+    return errors.New("simulated failure")
+})
+```
+
+Rules:
+- Do not assign the function to a package-level variable. Pass it at each call site.
+- Name the parameter to describe what it does (`proc`, `validate`, `notify`), not
+  what type it is (`fn`, `callback`).
+- If the same no-op appears in more than one test, extract it as a named helper
+  (`noop`) to avoid repetition.
+
+This pattern is separate from the closure injection used in HTTP handlers.
+Both are valid; choose based on whether the dependency varies per registration
+(closure) or per call (parameter).
+
 ## What each service owns
 
 `services/orders/` is responsible for:

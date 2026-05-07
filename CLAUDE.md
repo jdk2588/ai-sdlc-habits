@@ -98,6 +98,25 @@ as function parameters or captured in closures.
 
 HTTP handlers must never call `panic`. Return an error response instead.
 
+### Error recovery paths
+
+When a cleanup or error-recovery call (e.g., transitioning a record to `failed`,
+rolling back state) returns an error, capture it and return it wrapped with
+context. Do not drop errors in recovery branches.
+
+```go
+// correct
+if ferr := transitionTo(r, StatusFailed); ferr != nil {
+    return fmt.Errorf("set failed status: %w", ferr)
+}
+
+// wrong — the recovery itself failed silently
+transitionTo(r, StatusFailed)
+```
+
+This applies equally to the primary path and to any cleanup or compensation
+call inside an error branch.
+
 ## Message schemas
 
 These schemas are the wire contract between the two services. Both services must
