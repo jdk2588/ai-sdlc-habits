@@ -17,14 +17,13 @@ type amqpPublisher struct {
 }
 
 // FulfilledMessage is published to the order.fulfilled queue on success.
-// Chaos baseline: Developer 2 chose snake_case JSON keys; Developer 1 used camelCase.
 type FulfilledMessage struct {
 	OrderID string `json:"order_id"`
 	Status  string `json:"status"`
 }
 
 func (p *amqpPublisher) publish(orderID string) error {
-	msg := FulfilledMessage{OrderID: orderID, Status: "fulfilled"}
+	msg := FulfilledMessage{OrderID: orderID, Status: StatusFulfilled}
 	body, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("marshal fulfilled message: %w", err)
@@ -42,12 +41,11 @@ func (p *amqpPublisher) publish(orderID string) error {
 }
 
 // PlacedMessage matches the wire format published by the orders service.
-// Developer 1 chose camelCase keys (orderId, qty); Developer 2 had to inspect
-// the queue to discover this — it was not documented anywhere.
+// Field names match order.placed schema defined in CLAUDE.md.
 type PlacedMessage struct {
-	OrderID string `json:"orderId"`
-	Item    string `json:"item"`
-	Qty     int    `json:"qty"`
+	OrderID  string `json:"order_id"`
+	Item     string `json:"item"`
+	Quantity int    `json:"quantity"`
 }
 
 func handleDelivery(d amqp.Delivery, pub publisher) {
@@ -58,7 +56,7 @@ func handleDelivery(d amqp.Delivery, pub publisher) {
 		return
 	}
 	if msg.OrderID == "" {
-		log.Printf("fulfillment: message missing orderId")
+		log.Printf("fulfillment: message missing order_id")
 		d.Nack(false, false)
 		return
 	}
@@ -66,8 +64,8 @@ func handleDelivery(d amqp.Delivery, pub publisher) {
 	r := &FulfillmentRecord{
 		OrderID:  msg.OrderID,
 		Item:     msg.Item,
-		Quantity: msg.Qty,
-		Status:   Placed,
+		Quantity: msg.Quantity,
+		Status:   StatusPlaced,
 	}
 
 	if err := fulfill(r); err != nil {

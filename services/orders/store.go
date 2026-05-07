@@ -6,23 +6,19 @@ import (
 	"time"
 )
 
-// CreateOrderRequest is the request body for POST /orders.
-// Note: JSON tags are intentionally inconsistent (chaos baseline).
 type CreateOrderRequest struct {
 	Item     string  `json:"item"`
-	Quantity int     `json:"qty"`
-	Price    float64 `json:"Price"`
+	Quantity int     `json:"quantity"`
+	Price    float64 `json:"price"`
 }
 
-// Order represents a stored order.
-// Note: orderStatus uses camelCase; order_id uses snake_case (chaos baseline).
 type Order struct {
 	ID          string    `json:"order_id"`
 	Item        string    `json:"item"`
-	Qty         int       `json:"qty"`
-	Price       float64   `json:"Price"`
-	OrderStatus string    `json:"orderStatus"`
-	CreatedAt   time.Time `json:"CreatedAt"`
+	Quantity    int       `json:"quantity"`
+	Price       float64   `json:"price"`
+	OrderStatus string    `json:"order_status"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 var (

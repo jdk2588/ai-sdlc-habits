@@ -6,55 +6,20 @@ import (
 	"sync"
 )
 
-// OrderStatus is a typed status enum.
-// Chaos baseline: Developer 2 used typed int constants; Developer 1 used plain strings.
-type OrderStatus int
-
 const (
-	Placed OrderStatus = iota
-	Processing
-	Fulfilled
-	Failed
+	StatusPlaced     = "placed"
+	StatusProcessing = "processing"
+	StatusFulfilled  = "fulfilled"
+	StatusFailed     = "failed"
 )
-
-func (s OrderStatus) String() string {
-	switch s {
-	case Placed:
-		return "placed"
-	case Processing:
-		return "processing"
-	case Fulfilled:
-		return "fulfilled"
-	case Failed:
-		return "failed"
-	default:
-		return "unknown"
-	}
-}
-
-// ProcessingError is a typed error for state machine failures.
-// Chaos baseline: Developer 2 uses custom error types; Developer 1 uses errors.New / fmt.Errorf.
-type ProcessingError struct {
-	OrderID string
-	Err     error
-}
-
-func (e *ProcessingError) Error() string {
-	return fmt.Sprintf("order %s: %v", e.OrderID, e.Err)
-}
-
-func (e *ProcessingError) Unwrap() error { return e.Err }
 
 var errInvalidTransition = errors.New("invalid state transition")
 
-// FulfillmentRecord is the fulfillment service's view of an order.
-// Chaos baseline: JSON tags use PascalCase; Developer 1's Order struct uses mixed snake/camel/Pascal.
-// "Quantity" vs Developer 1's "qty" abbreviation.
 type FulfillmentRecord struct {
-	OrderID  string      `json:"OrderID"`
-	Item     string      `json:"Item"`
-	Quantity int         `json:"Quantity"`
-	Status   OrderStatus `json:"-"`
+	OrderID  string `json:"order_id"`
+	Item     string `json:"item"`
+	Quantity int    `json:"quantity"`
+	Status   string `json:"-"`
 }
 
 var (
@@ -68,32 +33,29 @@ func upsert(r *FulfillmentRecord) {
 	records[r.OrderID] = r
 }
 
-// transitionTo advances r to next, returning ProcessingError on invalid transition.
+// transitionTo advances r to next, returning an error on invalid transition.
 // r.Status is not modified on error.
-func transitionTo(r *FulfillmentRecord, next OrderStatus) error {
+func transitionTo(r *FulfillmentRecord, next string) error {
 	switch {
-	case r.Status == Placed && next == Processing,
-		r.Status == Processing && next == Fulfilled,
-		r.Status == Processing && next == Failed:
+	case r.Status == StatusPlaced && next == StatusProcessing,
+		r.Status == StatusProcessing && next == StatusFulfilled,
+		r.Status == StatusProcessing && next == StatusFailed:
 		r.Status = next
 		return nil
 	default:
-		return &ProcessingError{
-			OrderID: r.OrderID,
-			Err:     fmt.Errorf("%w: %s -> %s", errInvalidTransition, r.Status, next),
-		}
+		return fmt.Errorf("order %s: %w: %s -> %s", r.OrderID, errInvalidTransition, r.Status, next)
 	}
 }
 
 // fulfill runs the state machine: placed -> processing -> fulfilled.
 // On transition failure after reaching processing, status is set to failed.
 func fulfill(r *FulfillmentRecord) error {
-	if err := transitionTo(r, Processing); err != nil {
+	if err := transitionTo(r, StatusProcessing); err != nil {
 		return err
 	}
 	upsert(r)
-	if err := transitionTo(r, Fulfilled); err != nil {
-		transitionTo(r, Failed)
+	if err := transitionTo(r, StatusFulfilled); err != nil {
+		transitionTo(r, StatusFailed)
 		upsert(r)
 		return err
 	}
