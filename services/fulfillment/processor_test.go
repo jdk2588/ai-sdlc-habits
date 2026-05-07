@@ -73,9 +73,11 @@ func TestTransition_FulfilledIsTerminal(t *testing.T) {
 	}
 }
 
+func noop(_ *FulfillmentRecord) error { return nil }
+
 func TestFulfill_HappyPath(t *testing.T) {
 	r := makeRecord("happy-1", StatusPlaced)
-	if err := fulfill(r); err != nil {
+	if err := fulfill(r, noop); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if r.Status != StatusFulfilled {
@@ -85,7 +87,21 @@ func TestFulfill_HappyPath(t *testing.T) {
 
 func TestFulfill_InvalidStartState(t *testing.T) {
 	r := makeRecord("bad-1", StatusFulfilled)
-	if err := fulfill(r); err == nil {
+	if err := fulfill(r, noop); err == nil {
 		t.Fatal("expected error when order is already fulfilled")
+	}
+}
+
+func TestFulfill_ProcessingFails(t *testing.T) {
+	r := makeRecord("fail-1", StatusPlaced)
+	failingProc := func(_ *FulfillmentRecord) error {
+		return errors.New("inventory unavailable")
+	}
+	err := fulfill(r, failingProc)
+	if err == nil {
+		t.Fatal("expected error when processor fails, got nil")
+	}
+	if r.Status != StatusFailed {
+		t.Errorf("want %q after processor failure, got %q", StatusFailed, r.Status)
 	}
 }
