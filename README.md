@@ -31,7 +31,3 @@ The orders service listens on `http://localhost:8080`. The fulfillment service c
 ## The full story
 
 Read `TUTORIAL.md` for the narrative — how two developers built this system independently, where they diverged, and how the five habits brought them back into alignment.
-
-## The talk
-
-One2N — AI-Enabled SDLC by Jaideep Khandelwal
