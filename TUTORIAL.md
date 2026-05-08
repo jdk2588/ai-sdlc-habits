@@ -1,4 +1,4 @@
-# AI-Enabled SDLC: The Story of Two Developers and Five Habits
+# AI-Enabled SDLC: The Story of Two Developers and Five Habits for Collaboration
 
 This is the story of Developer 1 and Developer 2. Both are experienced engineers.
 Both use AI assistants daily. Both were given the same task: build an order
@@ -17,9 +17,6 @@ the files in `context/` to see the thinking that preceded the code.
 ---
 
 ## The system
-
-The system is intentionally simple so the habits, not the architecture, are the
-story.
 
 Two services. `services/orders/` accepts order creation requests over HTTP,
 persists them in memory, and publishes an `order.placed` event to RabbitMQ.
@@ -119,10 +116,8 @@ things are already going wrong - the worst place for a silent failure.
 
 ### The pattern
 
-The individual violations were fixable. The structural problem was not: any new
-code written by either developer's AI would reproduce that developer's patterns.
-There was no shared ground truth for the AI to reference. The divergence was not
-a one-time incident. It was a process.
+Any new code written by either developer's AI would reproduce that developer's patterns.
+There was no shared ground truth for the AI to reference. It creates confusion within the team and increases technical debt.
 
 ---
 
@@ -141,7 +136,7 @@ the only error response shape, `fmt.Errorf("context: %w", err)` for wrapping
 errors, and no global state beyond the store.
 
 They wrote these into `CLAUDE.md` at the repository root. Claude Code reads
-`CLAUDE.md` automatically at the start of every session. Any AI-assisted session
+`CLAUDE.md` is automatically created at the start of every session. Any AI-assisted session
 in this repo now starts with the same ground truth - not the ground truth from
 one developer's history, but the ground truth the team agreed on together.
 
@@ -181,11 +176,11 @@ services - the `order.placed` and `order.fulfilled` wire schemas.
 Without a design document, each developer would have implemented what seemed
 reasonable to them. The wire schemas would have diverged again. The state machine
 transitions might have been defined differently in code than in the prose
-explanation. Integration would have required negotiation after the fact.
+explanation.
 
 Developer 1 and Developer 2 wrote `context/02-design.md` first. The document
 specifies the exact HTTP interface for `GET /orders/{id}` - the request shape,
-the 200 response fields with types, the 404 response - and the exact AMQP
+the 200 response fields with types, the 404 response, and the exact AMQP
 message schemas for `order.placed` and `order.fulfilled`. It defines the state
 machine transitions explicitly:
 
@@ -247,7 +242,7 @@ checklist, two BLOCK violations surfaced.
 The first was in the fulfillment processor. The call to transition a failed order
 to `StatusFailed` dropped its return value:
 
-```go
+``` go
 transitionTo(r, StatusFailed) // B1: return value silently dropped
 return fmt.Errorf("processing failed: %w", err)
 ```
@@ -297,7 +292,7 @@ Phase 4 added failure handling to the fulfillment state machine. The existing
 `fulfill()` function had a failure branch that was unreachable: the call to
 `transitionTo(r, StatusFulfilled)` would always succeed from the `processing`
 state, so the error branch after it could never fire. Failures during actual
-fulfillment work - an inventory check, a warehouse API call, whatever a real
+fulfillment work - an inventory check, a warehouse API call, whatever, a real
 processor would do - had no place to go.
 
 The implementation guide in `context/04-implementation-guide.md` specified the
@@ -308,7 +303,7 @@ exact change before any code was touched:
 - The failure-path state flow: `placed -> processing (upsert) -> proc(r) -> failed (upsert) -> return err`
 - The new test: `TestFulfill_ProcessingFails` - injects a failing processor, asserts `r.Status == StatusFailed`
 - The existing tests that needed signature updates
-- An explicit out-of-scope list: retries, dead-letter queue, alerting, persisting the failure reason
+- An explicit out-of-scope list: retries, dead-letter queue, alerting, and persisting the failure reason
 
 The out-of-scope list is not decoration. Without it, an AI generating code for
 "failure handling" would reasonably add retry logic or a dead-letter queue
@@ -356,9 +351,9 @@ inside that branch does not need to be propagated.
 The retro named this pattern explicitly. The finding was added to `CLAUDE.md`
 as a new "Error recovery paths" section with a correct and incorrect example.
 Future AIs in this repo will read that rule before writing any error handling.
-The pattern does not need to be caught by review again.
+The pattern does not need to be reviewed again.
 
-The retro also identified what was missing from the briefing: function-parameter
+The retro also identified what was missing from the briefing: the function parameter
 dependency injection. `context/01-base-instructions.md` documented the closure
 form for handler injection, but not the pattern of passing a typed function
 parameter to non-handler functions. Without that pattern documented, an AI
