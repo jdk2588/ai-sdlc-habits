@@ -187,3 +187,28 @@ log.Fatalf("orders: server error: %v", err)
 - Publishing `order.fulfilled` messages
 
 Neither service queries the other's store. The only coupling is through RabbitMQ.
+
+## What each file owns
+
+### services/orders/
+
+| File | Responsibility |
+|------|---------------|
+| `main.go` | Wiring only: AMQP setup, HTTP server start, dependency injection |
+| `handlers.go` | HTTP handler functions (`handleCreateOrder`, `handleGetOrder`, `writeError`) |
+| `store.go` | In-memory map, mutex, ID counter, store helper functions (`saveOrder`, `findOrder`) |
+| `publisher.go` | AMQP publishing logic (`publishOrderPlaced`) |
+| `validate.go` | Request body validation (pure functions, no side effects) |
+| `handlers_test.go` | HTTP handler tests via `httptest` |
+| `validate_test.go` | Validation unit tests |
+
+### services/fulfillment/
+
+| File | Responsibility |
+|------|---------------|
+| `main.go` | Wiring only: AMQP setup, consumer registration |
+| `consumer.go` | Message parsing, delivery dispatch, AMQP acknowledgement |
+| `processor.go` | State machine: placed → processing → fulfilled, error paths |
+| `processor_test.go` | State machine unit tests |
+
+New code belongs in the file that owns its responsibility. Do not add HTTP logic to `store.go`, do not add store logic to `handlers.go`, and do not add wiring logic anywhere outside `main.go`.
