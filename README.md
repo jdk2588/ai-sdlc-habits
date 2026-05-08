@@ -1,6 +1,6 @@
 # AI-Enabled SDLC
 
-A reference implementation of the five AI-enabled SDLC habits from the One2N talk by Jaideep Khandelwal.
+A reference implementation of the five AI-enabled SDLC habits for team collaboration.
 
 ## Who this is for
 
