@@ -59,6 +59,9 @@ Developer 1 and Developer 2 both contribute to `orders` and `fulfillment`. This 
 ## TUTORIAL.md narrative voice: descriptive, not prescriptive
 TUTORIAL.md tells the story of Developer 1 and Developer 2 — what they built, what diverged, and how each habit changed their output. The primary use case is a conference attendee studying the reference repo after the talk. It is not a step-by-step lab exercise.
 
+## Two tutorial documents: post-talk study and live audience
+The repo has two tutorial files serving distinct primary readers. `TUTORIAL.md` is the post-talk narrative for someone who has heard the talk and is studying the repo at their own pace. A second file (`TALK.md`) targets a live projector follow-along: the file is displayed on screen while the speaker talks. Format constraints: sections must fit one projector scroll, large visual landmarks, minimal prose, one habit per section. Audience reads from their seats at projector resolution — not on a personal device.
+
 ## Minimal infrastructure: in-memory store, no auth, no DLQ
 The `orders` service uses an in-memory store. No separate database, no authentication on the HTTP API, no dead-letter queue for fulfillment failures. Infrastructure complexity is kept low so the habits are the story.
 
