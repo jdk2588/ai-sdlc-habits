@@ -60,6 +60,14 @@ git checkout phase-1
 
 **What we're about to demo:** Start a Claude Code session in this repo — with `CLAUDE.md` in place — and ask it to add a new struct. Then compare the output to what Phase 0 produced without it.
 
+```
+git checkout phase-1
+```
+
+```
+Add a POST /orders/{id}/cancel endpoint to the orders service. It should accept a JSON body with a reason field, log when an order is cancelled, and return an error if the order is not found.
+```
+
 **Watch for:**
 - Does the AI use snake_case JSON tags without being told?
 - Does it use `log.Printf` instead of `fmt.Printf`?
@@ -114,6 +122,11 @@ git checkout phase-3
 **Watch for:**
 - A dropped return value in a recovery path (`transitionTo` error silently lost)
 - A leaf error constructed with `fmt.Errorf` instead of `errors.New`
+
+```
+ Run the review checklist against the phase-2 code and find the violations
+
+```
 
 ---
 *— switch to terminal —*
